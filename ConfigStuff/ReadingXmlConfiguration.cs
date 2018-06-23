@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
 using FluentAssertions.Execution;
@@ -11,7 +12,8 @@ namespace ConfigStuff
 {
     public class ReadingXmlConfiguration
     {
-        private const string configFile = "App.config";
+        private readonly string configFile =
+            Assembly.GetExecutingAssembly().Location + ".config";
 
         private const string expected =
             @"Server=(LocalDb)\MSSQLLocalDB;Database=SomeDb;Integrated Security=true";
@@ -21,7 +23,7 @@ namespace ConfigStuff
         {
             // using System.Xml;
             var xmlDocument = new XmlDocument();
-            xmlDocument.Load(configFile);
+            xmlDocument.Load(this.configFile);
             var root = xmlDocument.DocumentElement;
 
             var query = "//connectionStrings/add[@name='default']/@connectionString";
@@ -34,7 +36,7 @@ namespace ConfigStuff
         public void UsingLinqToXml()
         {
             // using System.Xml.Linq
-            var document = XDocument.Load(configFile);
+            var document = XDocument.Load(this.configFile);
 
             var connectionString =
                 (from cs in document.Descendants("connectionStrings")
@@ -51,7 +53,7 @@ namespace ConfigStuff
             // Install-Package Microsoft.Extensions.Configuration.Xml
             // using Microsoft.Extensions.Configuration
             var configuration = new ConfigurationBuilder()
-                .AddXmlFile(configFile)
+                .AddXmlFile(this.configFile)
                 .Build();
 
             var key = "add:default:connectionString";
